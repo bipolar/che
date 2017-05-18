@@ -20,11 +20,11 @@ import com.google.inject.name.Named;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
-import org.eclipse.che.core.db.DBInitializer;
 import org.eclipse.che.api.workspace.server.model.impl.stack.StackImpl;
 import org.eclipse.che.api.workspace.server.spi.StackDao;
 import org.eclipse.che.api.workspace.server.stack.image.StackIcon;
 import org.eclipse.che.api.workspace.shared.stack.Stack;
+import org.eclipse.che.core.db.DBInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +49,10 @@ public class StackLoader {
     private static final Logger LOG = LoggerFactory.getLogger(StackLoader.class);
 
     private final Gson GSON;
+    private final Path stackJsonPath;
 
-    private final Path     stackJsonPath;
-    private final Path     stackIconFolderPath;
-    private final StackDao stackDao;
+    protected final Path     stackIconFolderPath;
+    protected final StackDao stackDao;
 
     @Inject
     @SuppressWarnings("unused")
@@ -63,7 +63,6 @@ public class StackLoader {
         this.stackJsonPath = Paths.get(stacksPath);
         this.stackIconFolderPath = Paths.get(stackIconFolder);
         this.stackDao = stackDao;
-
         GSON = new GsonBuilder().create();
     }
 
@@ -82,7 +81,7 @@ public class StackLoader {
         }
     }
 
-    private void loadStack(StackImpl stack) {
+    protected void loadStack(StackImpl stack) {
         setIconData(stack, stackIconFolderPath);
 
         try {
@@ -96,7 +95,7 @@ public class StackLoader {
         }
     }
 
-    private void setIconData(StackImpl stack, Path stackIconFolderPath) {
+    protected void setIconData(StackImpl stack, Path stackIconFolderPath) {
         StackIcon stackIcon = stack.getStackIcon();
         if (stackIcon == null) {
             return;
