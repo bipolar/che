@@ -18,6 +18,7 @@ import com.google.inject.name.Names;
 import org.eclipse.che.ide.api.editor.EditorAgent;
 import org.eclipse.che.ide.api.editor.EditorProvider;
 import org.eclipse.che.ide.api.editor.EditorRegistry;
+import org.eclipse.che.ide.api.editor.autosave.AutoSaveMode;
 import org.eclipse.che.ide.api.editor.codeassist.CodeAssistant;
 import org.eclipse.che.ide.api.editor.codeassist.CodeAssistantFactory;
 import org.eclipse.che.ide.api.editor.codeassist.CodeAssistantImpl;
@@ -33,6 +34,7 @@ import org.eclipse.che.ide.api.editor.reconciler.DefaultReconciler;
 import org.eclipse.che.ide.api.editor.reconciler.Reconciler;
 import org.eclipse.che.ide.api.editor.reconciler.ReconcilerFactory;
 import org.eclipse.che.ide.api.editor.texteditor.TextEditorPartView;
+import org.eclipse.che.ide.editor.autosave.AutoSaveModeImpl;
 import org.eclipse.che.ide.editor.quickfix.QuickAssistAssistantImpl;
 import org.eclipse.che.ide.editor.quickfix.QuickAssistWidgetFactory;
 import org.eclipse.che.ide.editor.synchronization.EditorContentSynchronizer;
@@ -60,6 +62,8 @@ public class EditorApiModule extends AbstractGinModule {
     @Override
     protected void configure() {
         bind(EditorAgent.class).to(EditorAgentImpl.class).in(Singleton.class);
+
+        bind(AutoSaveMode.class).to(AutoSaveModeImpl.class);
 
         bind(UserActivityManager.class).in(Singleton.class);
 

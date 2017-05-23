@@ -15,6 +15,7 @@ import elemental.events.KeyboardEvent.KeyCode;
 import org.eclipse.che.ide.api.editor.annotation.AnnotationModel;
 import org.eclipse.che.ide.api.editor.annotation.HasAnnotationRendering;
 import org.eclipse.che.ide.api.editor.annotation.QueryAnnotationsEvent;
+import org.eclipse.che.ide.api.editor.autosave.AutoSaveMode;
 import org.eclipse.che.ide.api.editor.changeintercept.ChangeInterceptorProvider;
 import org.eclipse.che.ide.api.editor.changeintercept.TextChange;
 import org.eclipse.che.ide.api.editor.changeintercept.TextChangeInterceptor;
@@ -63,11 +64,11 @@ public class OrionEditorInit {
     private static final String CONTENT_ASSIST = "Content assist";
     private static final String QUICK_FIX      = "Quick fix";
 
-    private final AutoSaveMode autoSaveMode;
+    private final AutoSaveMode            autoSaveMode;
     private final TextEditorConfiguration configuration;
-    private final CodeAssistantFactory codeAssistantFactory;
-    private final OrionEditorPresenter textEditor;
-    private final QuickAssistAssistant quickAssist;
+    private final CodeAssistantFactory    codeAssistantFactory;
+    private final OrionEditorPresenter    textEditor;
+    private final QuickAssistAssistant    quickAssist;
 
     /**
      * The quick assist assistant.

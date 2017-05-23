@@ -8,12 +8,11 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.che.ide.editor.orion.client;
+package org.eclipse.che.ide.api.editor.autosave;
 
 import org.eclipse.che.ide.api.editor.document.UseDocumentHandle;
 import org.eclipse.che.ide.api.editor.events.DocumentChangeHandler;
 import org.eclipse.che.ide.api.editor.texteditor.TextEditor;
-import org.eclipse.che.ide.editor.preferences.editorproperties.EditorProperties;
 
 /**
  * Editor content auto save functionality.
@@ -38,8 +37,7 @@ public interface AutoSaveMode extends DocumentChangeHandler, UseDocumentHandle {
     void suspend();
 
     /**
-     * Resumes auto save mode for editor content and sets mode corresponding to option {@link EditorProperties#ENABLE_AUTO_SAVE} in editor
-     * preferences.
+     * Resumes auto save mode for editor content and sets mode corresponding to 'Enable Autosave' option in editor preferences.
      */
     void resume();
 
@@ -51,8 +49,7 @@ public interface AutoSaveMode extends DocumentChangeHandler, UseDocumentHandle {
     enum Mode {
         /**
          * The state when auto save mode of editor content is turned on.
-         * Corresponds to the case when the option {@link EditorProperties#ENABLE_AUTO_SAVE} in editor
-         * preferences is enabled.
+         * Corresponds to the case when the 'Enable Autosave' option in editor preferences is enabled.
          */
         ACTIVATED,
 
@@ -61,8 +58,7 @@ public interface AutoSaveMode extends DocumentChangeHandler, UseDocumentHandle {
 
         /**
          * The state when auto save mode of editor content is turned off.
-         * Corresponds to the case when the option {@link EditorProperties#ENABLE_AUTO_SAVE} in editor
-         * preferences is disabled.
+         * Corresponds to the case when the 'Enable Autosave' option in editor preferences is disabled.
          */
         DEACTIVATED
     }

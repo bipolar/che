@@ -52,6 +52,7 @@ import org.eclipse.che.ide.api.editor.annotation.AnnotationModelHandler;
 import org.eclipse.che.ide.api.editor.annotation.ClearAnnotationModelEvent;
 import org.eclipse.che.ide.api.editor.annotation.ClearAnnotationModelHandler;
 import org.eclipse.che.ide.api.editor.annotation.HasAnnotationRendering;
+import org.eclipse.che.ide.api.editor.autosave.AutoSaveMode;
 import org.eclipse.che.ide.api.editor.codeassist.CodeAssistProcessor;
 import org.eclipse.che.ide.api.editor.codeassist.CodeAssistantFactory;
 import org.eclipse.che.ide.api.editor.codeassist.CompletionsSource;

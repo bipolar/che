@@ -18,8 +18,6 @@ import com.google.inject.TypeLiteral;
 import org.eclipse.che.ide.api.editor.defaulteditor.EditorBuilder;
 import org.eclipse.che.ide.api.editor.texteditor.EditorWidgetFactory;
 import org.eclipse.che.ide.api.extension.ExtensionGinModule;
-import org.eclipse.che.ide.editor.orion.client.AutoSaveMode;
-import org.eclipse.che.ide.editor.orion.client.AutoSaveModeImpl;
 import org.eclipse.che.ide.editor.orion.client.ContentAssistWidgetFactory;
 import org.eclipse.che.ide.editor.orion.client.OrionEditorBuilder;
 import org.eclipse.che.ide.editor.orion.client.OrionEditorWidget;
@@ -33,8 +31,6 @@ public class OrionEditorGinModule extends AbstractGinModule {
     protected void configure() {
 
         bind(EditorBuilder.class).to(OrionEditorBuilder.class);
-
-        bind(AutoSaveMode.class).to(AutoSaveModeImpl.class);
 
         install(new GinFactoryModuleBuilder().build(new TypeLiteral<EditorWidgetFactory<OrionEditorWidget>>() {}));
 

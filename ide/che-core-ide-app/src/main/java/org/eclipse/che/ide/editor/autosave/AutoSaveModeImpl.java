@@ -8,7 +8,7 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.che.ide.editor.orion.client;
+package org.eclipse.che.ide.editor.autosave;
 
 import com.google.gwt.user.client.Timer;
 import com.google.inject.Inject;
@@ -18,6 +18,7 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import org.eclipse.che.ide.api.editor.EditorOpenedEvent;
 import org.eclipse.che.ide.api.editor.EditorOpenedEventHandler;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
+import org.eclipse.che.ide.api.editor.autosave.AutoSaveMode;
 import org.eclipse.che.ide.api.editor.document.DocumentHandle;
 import org.eclipse.che.ide.api.editor.events.DocumentChangeEvent;
 import org.eclipse.che.ide.api.editor.reconciler.DirtyRegion;
@@ -32,14 +33,14 @@ import org.eclipse.che.ide.api.resources.Project;
 import org.eclipse.che.ide.api.resources.Resource;
 import org.eclipse.che.ide.api.resources.VirtualFile;
 import org.eclipse.che.ide.editor.preferences.EditorPreferencesManager;
+import org.eclipse.che.ide.editor.preferences.editorproperties.EditorProperties;
 import org.eclipse.che.ide.editor.synchronization.workingCopy.EditorWorkingCopySynchronizer;
 
 import java.util.HashSet;
 
-import static org.eclipse.che.ide.editor.orion.client.AutoSaveMode.Mode.ACTIVATED;
-import static org.eclipse.che.ide.editor.orion.client.AutoSaveMode.Mode.DEACTIVATED;
-import static org.eclipse.che.ide.editor.orion.client.AutoSaveMode.Mode.SUSPENDED;
-import static org.eclipse.che.ide.editor.preferences.editorproperties.EditorProperties.ENABLE_AUTO_SAVE;
+import static org.eclipse.che.ide.api.editor.autosave.AutoSaveMode.Mode.ACTIVATED;
+import static org.eclipse.che.ide.api.editor.autosave.AutoSaveMode.Mode.DEACTIVATED;
+import static org.eclipse.che.ide.api.editor.autosave.AutoSaveMode.Mode.SUSPENDED;
 
 /**
  * Default implementation of {@link AutoSaveMode} which provides auto save function for editor content.
@@ -124,7 +125,7 @@ public class AutoSaveModeImpl implements AutoSaveMode, EditorSettingsChangedHand
     }
 
     private void updateAutoSaveState() {
-        Boolean autoSaveValue = editorPreferencesManager.getBooleanValueFor(ENABLE_AUTO_SAVE);
+        Boolean autoSaveValue = editorPreferencesManager.getBooleanValueFor(EditorProperties.ENABLE_AUTO_SAVE);
         if (autoSaveValue == null) {
             return;
         }
