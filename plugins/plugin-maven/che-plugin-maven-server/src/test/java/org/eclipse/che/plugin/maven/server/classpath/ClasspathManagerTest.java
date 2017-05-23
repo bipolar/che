@@ -13,6 +13,9 @@ package org.eclipse.che.plugin.maven.server.classpath;
 import com.google.gson.JsonObject;
 import com.google.inject.Provider;
 
+import org.eclipse.che.api.core.jsonrpc.commons.RequestTransmitter;
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
+import org.eclipse.che.api.project.server.ProjectManager;
 import org.eclipse.che.api.project.server.ProjectRegistry;
 import org.eclipse.che.commons.lang.IoUtil;
 import org.eclipse.che.plugin.maven.server.BaseTest;
@@ -66,6 +69,12 @@ public class ClasspathManagerTest extends BaseTest {
     public void setUp() throws Exception {
         Provider<ProjectRegistry> projectRegistryProvider = (Provider<ProjectRegistry>)mock(Provider.class);
         when(projectRegistryProvider.get()).thenReturn(projectRegistry);
+
+        RequestTransmitter requestTransmitter = mock(RequestTransmitter.class);
+
+        Provider<ProjectManager> projectManagerProvider = (Provider<ProjectManager>)mock(Provider.class);
+        when(projectManagerProvider.get()).thenReturn(pm);
+
         MavenServerManagerTest.MyMavenServerProgressNotifier mavenNotifier = new MavenServerManagerTest.MyMavenServerProgressNotifier();
         MavenTerminal terminal = (level, message, throwable) -> {
             System.out.println(message);
@@ -77,8 +86,11 @@ public class ClasspathManagerTest extends BaseTest {
         localRepository.mkdirs();
         mavenServerManager.setLocalRepository(localRepository);
         MavenWrapperManager wrapperManager = new MavenWrapperManager(mavenServerManager);
+        EditorWorkingCopyManager editorWorkingCopyManager =
+                new EditorWorkingCopyManager(projectManagerProvider, eventService, requestTransmitter);
         mavenProjectManager =
-                new MavenProjectManager(wrapperManager, mavenServerManager, terminal, mavenNotifier, new EclipseWorkspaceProvider());
+                new MavenProjectManager(wrapperManager, mavenServerManager, editorWorkingCopyManager, terminal, mavenNotifier,
+                                        new EclipseWorkspaceProvider());
         classpathManager = new ClasspathManager(root.getAbsolutePath(), wrapperManager, mavenProjectManager, terminal, mavenNotifier);
         mavenWorkspace = new MavenWorkspace(mavenProjectManager, mavenNotifier, new MavenExecutorService(), projectRegistryProvider,
                                             new MavenCommunication() {

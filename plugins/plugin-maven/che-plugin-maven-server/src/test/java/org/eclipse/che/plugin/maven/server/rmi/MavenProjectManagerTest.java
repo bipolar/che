@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.che.plugin.maven.server.rmi;
 
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.maven.data.MavenConstants;
 import org.eclipse.che.maven.data.MavenKey;
 import org.eclipse.che.plugin.maven.server.MavenServerManager;
@@ -65,6 +66,9 @@ public class MavenProjectManagerTest {
     private MavenProjectListener listener;
 
     @Mock
+    private EditorWorkingCopyManager editorWorkingCopyManager;
+
+    @Mock
     private EclipseWorkspaceProvider workspaceProvider;
 
     @Mock
@@ -80,7 +84,7 @@ public class MavenProjectManagerTest {
     @BeforeMethod
     public void setUp() throws Exception {
         MavenWrapperManager wrapperManager = new MavenWrapperManager(manager);
-        projectManager = new MavenProjectManager(wrapperManager, manager, new MavenTerminalImpl(),
+        projectManager = new MavenProjectManager(wrapperManager, manager, editorWorkingCopyManager, new MavenTerminalImpl(),
                                                  new MavenServerManagerTest.MyMavenServerProgressNotifier(), workspaceProvider);
         when(workspaceProvider.get()).thenReturn(workspace);
         when(workspace.getRoot()).thenReturn(workspaceRoot);
@@ -99,7 +103,7 @@ public class MavenProjectManagerTest {
         when(project.getFullPath()).thenReturn(new Path("/FirstProject/"));
 
         projectManager.addListener(listener);
-        MavenProject mavenProject = new MavenProject(project, workspace);
+        MavenProject mavenProject = new MavenProject(project, workspace, editorWorkingCopyManager);
         mavenProject.read(project, manager);
         MavenKey mavenKey = mavenProject.getMavenKey();
         assertThat(mavenKey).isNotNull();
@@ -111,12 +115,13 @@ public class MavenProjectManagerTest {
     @Test
     public void testResolveProjectWithProfiles() throws Exception {
         when(project.getFile(MavenConstants.POM_FILE_NAME)).thenReturn(pom);
-        when(pom.getLocation()).thenReturn(new Path(MavenProjectManagerTest.class.getResource("/multi-module-with-profiles/pom.xml").getFile()));
+        when(pom.getLocation())
+                .thenReturn(new Path(MavenProjectManagerTest.class.getResource("/multi-module-with-profiles/pom.xml").getFile()));
         when(pom.getFullPath()).thenReturn(new Path("/multi-module-with-profiles/pom.xml"));
         when(project.getFullPath()).thenReturn(new Path("/multi-module-with-profiles/"));
 
         projectManager.addListener(listener);
-        MavenProject mavenProject = new MavenProject(project, workspace);
+        MavenProject mavenProject = new MavenProject(project, workspace, editorWorkingCopyManager);
         mavenProject.read(project, manager);
         MavenKey mavenKey = mavenProject.getMavenKey();
         assertThat(mavenKey).isNotNull();
@@ -134,7 +139,7 @@ public class MavenProjectManagerTest {
         when(project.getFullPath()).thenReturn(new Path("/BadProject"));
 
         projectManager.addListener(listener);
-        MavenProject mavenProject = new MavenProject(project, workspace);
+        MavenProject mavenProject = new MavenProject(project, workspace, editorWorkingCopyManager);
         mavenProject.read(project, manager);
         MavenKey mavenKey = mavenProject.getMavenKey();
         assertThat(mavenKey).isNotNull();
@@ -153,7 +158,7 @@ public class MavenProjectManagerTest {
         when(project.getFullPath()).thenReturn(new Path("/FirstProject/"));
 
         projectManager.addListener(listener);
-        MavenProject mavenProject = new MavenProject(project, workspace);
+        MavenProject mavenProject = new MavenProject(project, workspace, editorWorkingCopyManager);
         mavenProject.read(project, manager);
         MavenKey mavenKey = mavenProject.getMavenKey();
         assertThat(mavenKey).isNotNull();
@@ -195,7 +200,7 @@ public class MavenProjectManagerTest {
 
 
         projectManager.addListener(listener);
-        MavenProject mavenProject = new MavenProject(project, workspace);
+        MavenProject mavenProject = new MavenProject(project, workspace, editorWorkingCopyManager);
         mavenProject.read(project, manager);
         MavenKey mavenKey = mavenProject.getMavenKey();
         assertThat(mavenKey).isNotNull();

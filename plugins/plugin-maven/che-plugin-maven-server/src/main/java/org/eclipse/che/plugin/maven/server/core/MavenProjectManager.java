@@ -14,6 +14,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.maven.data.MavenArtifact;
 import org.eclipse.che.maven.data.MavenKey;
 import org.eclipse.che.maven.data.MavenWorkspaceCache;
@@ -61,11 +62,12 @@ public class MavenProjectManager {
     //project that does not have parent project in our workspace
     private final List<MavenProject> rootProjects;
 
-    private final MavenWrapperManager   wrapperManager;
-    private final MavenServerManager    serverManager;
-    private final MavenTerminal         terminal;
-    private final MavenProgressNotifier mavenNotifier;
-    private final Provider<IWorkspace>  workspaceProvider;
+    private final MavenWrapperManager      wrapperManager;
+    private final MavenServerManager       serverManager;
+    private final EditorWorkingCopyManager workingCopyManager;
+    private final MavenTerminal            terminal;
+    private final MavenProgressNotifier    mavenNotifier;
+    private final Provider<IWorkspace>     workspaceProvider;
 
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock                   readLock      = readWriteLock.readLock();
@@ -76,11 +78,13 @@ public class MavenProjectManager {
     @Inject
     public MavenProjectManager(MavenWrapperManager wrapperManager,
                                MavenServerManager serverManager,
+                               EditorWorkingCopyManager workingCopyManager,
                                MavenTerminal terminal,
                                MavenProgressNotifier mavenNotifier,
                                EclipseWorkspaceProvider workspaceProvider) {
         this.wrapperManager = wrapperManager;
         this.serverManager = serverManager;
+        this.workingCopyManager = workingCopyManager;
         this.terminal = terminal;
         this.mavenNotifier = mavenNotifier;
         this.workspaceProvider = workspaceProvider;
@@ -159,7 +163,7 @@ public class MavenProjectManager {
     }
 
     private void internalAddMavenProject(IProject project, boolean recursive, UpdateState state, Deque<MavenProject> stack) {
-        MavenProject mavenProject = new MavenProject(project, workspaceProvider.get());
+        MavenProject mavenProject = new MavenProject(project, workspaceProvider.get(), workingCopyManager);
         MavenProject potentialParent = null;
         for (MavenProject parent : getAllProjects()) {
             if (parent.containsAsModule(project.getFullPath())) {
@@ -232,7 +236,7 @@ public class MavenProjectManager {
             MavenProject project = findMavenProject(module);
             boolean isNewProject = project == null;
             if (isNewProject) {
-                project = new MavenProject(module, workspaceProvider.get());
+                project = new MavenProject(module, workspaceProvider.get(), workingCopyManager);
             } else {
                 MavenProject parent = findParentProject(project);
                 if (parent != null && parent != mavenProject) {

@@ -12,7 +12,11 @@ package org.eclipse.che.plugin.maven.server;
 
 import com.google.gson.JsonObject;
 import com.google.inject.Provider;
+
+import org.eclipse.che.api.core.jsonrpc.commons.RequestTransmitter;
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.api.project.server.FolderEntry;
+import org.eclipse.che.api.project.server.ProjectManager;
 import org.eclipse.che.api.project.server.ProjectRegistry;
 import org.eclipse.che.api.project.server.RegisteredProject;
 import org.eclipse.che.api.vfs.VirtualFile;
@@ -75,6 +79,12 @@ public class WorkspaceTest extends BaseTest {
     public void setUp() throws Exception {
         Provider<ProjectRegistry> projectRegistryProvider = (Provider<ProjectRegistry>)mock(Provider.class);
         when(projectRegistryProvider.get()).thenReturn(projectRegistry);
+
+        RequestTransmitter requestTransmitter = mock(RequestTransmitter.class);
+
+        Provider<ProjectManager> projectManagerProvider = (Provider<ProjectManager>)mock(Provider.class);
+        when(projectManagerProvider.get()).thenReturn(pm);
+
         MavenServerManagerTest.MyMavenServerProgressNotifier mavenNotifier = new MavenServerManagerTest.MyMavenServerProgressNotifier();
         MavenTerminal terminal = new MavenTerminal() {
             @Override
@@ -86,8 +96,11 @@ public class WorkspaceTest extends BaseTest {
             }
         };
         MavenWrapperManager wrapperManager = new MavenWrapperManager(mavenServerManager);
+        EditorWorkingCopyManager editorWorkingCopyManager =
+                new EditorWorkingCopyManager(projectManagerProvider, eventService, requestTransmitter);
         mavenProjectManager =
-                new MavenProjectManager(wrapperManager, mavenServerManager, terminal, mavenNotifier, new EclipseWorkspaceProvider());
+                new MavenProjectManager(wrapperManager, mavenServerManager, editorWorkingCopyManager, terminal, mavenNotifier,
+                                        new EclipseWorkspaceProvider());
         mavenWorkspace = new MavenWorkspace(mavenProjectManager,
                                             mavenNotifier,
                                             new MavenExecutorService(),

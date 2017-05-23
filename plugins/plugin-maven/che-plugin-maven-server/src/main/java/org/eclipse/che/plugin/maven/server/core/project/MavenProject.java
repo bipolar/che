@@ -10,6 +10,10 @@
  *******************************************************************************/
 package org.eclipse.che.plugin.maven.server.core.project;
 
+import org.eclipse.che.api.core.ForbiddenException;
+import org.eclipse.che.api.core.NotFoundException;
+import org.eclipse.che.api.core.ServerException;
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.commons.lang.PathUtil;
 import org.eclipse.che.maven.data.MavenArtifact;
 import org.eclipse.che.maven.data.MavenConstants;
@@ -51,13 +55,14 @@ public class MavenProject {
 
     private final IProject   project;
     private final IWorkspace workspace;
+    private final EditorWorkingCopyManager workingCopyManager;
     private volatile Info info = new Info();
 
-    public MavenProject(IProject project, IWorkspace workspace) {
+    public MavenProject(IProject project, IWorkspace workspace, EditorWorkingCopyManager workingCopyManager) {
         this.project = project;
         this.workspace = workspace;
+        this.workingCopyManager = workingCopyManager;
     }
-
 
     public MavenKey getParentKey() {
         return info.parentKey;
@@ -303,7 +308,15 @@ public class MavenProject {
             return null;
         }
 
-        return file.getLocation().toFile();
+        File pomFile = null;
+        if (workingCopyManager != null) {
+            try {
+                pomFile = workingCopyManager.getPersistentWorkingCopy(file.getFullPath().toOSString());
+            } catch (NotFoundException | ServerException | ForbiddenException e) {
+                //ignore
+            }
+        }
+        return pomFile != null ? pomFile : file.getLocation().toFile();
     }
 
     /**

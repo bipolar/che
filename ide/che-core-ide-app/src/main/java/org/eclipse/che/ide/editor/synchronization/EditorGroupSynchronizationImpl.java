@@ -60,10 +60,30 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
     @Override
     public void addEditor(EditorPartPresenter editor) {
         DocumentHandle documentHandle = getDocumentHandleFor(editor);
-        if (documentHandle != null) {
+        if (documentHandle == null) {
+            return;
+        }
+
+        if (synchronizedEditors.isEmpty()) {
             HandlerRegistration handlerRegistration = documentHandle.getDocEventBus().addHandler(DocumentChangeEvent.TYPE, this);
             synchronizedEditors.put(editor, handlerRegistration);
+            return;
         }
+
+        EditorPartPresenter groupMember = synchronizedEditors.keySet().iterator().next();
+        if ((groupMember instanceof EditorWithAutoSave) && !((EditorWithAutoSave)groupMember).isAutoSaveEnabled()) {
+            //group can contains unsaved content - we need update content for the editor
+            Document editorDocument = documentHandle.getDocument();
+            Document groupMemberDocument = getDocumentHandleFor(groupMember).getDocument();
+
+            String oldContent = editorDocument.getContents();
+            String groupMemberContent = groupMemberDocument.getContents();
+
+            editorDocument.replace(0, oldContent.length(), groupMemberContent);
+        }
+
+        HandlerRegistration handlerRegistration = documentHandle.getDocEventBus().addHandler(DocumentChangeEvent.TYPE, this);
+        synchronizedEditors.put(editor, handlerRegistration);
     }
 
     @Override
@@ -74,10 +94,6 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
 
     @Override
     public void removeEditor(EditorPartPresenter editor) {
-        if (editor.isDirty()) {
-            editor.doSave();
-        }
-
         HandlerRegistration handlerRegistration = synchronizedEditors.remove(editor);
         if (handlerRegistration != null) {
             handlerRegistration.removeHandler();
@@ -90,9 +106,7 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
 
     @Override
     public void unInstall() {
-        for (HandlerRegistration handlerRegistration : synchronizedEditors.values()) {
-            handlerRegistration.removeHandler();
-        }
+        synchronizedEditors.values().forEach(HandlerRegistration::removeHandler);
 
         if (fileContentUpdateHandlerRegistration != null) {
             fileContentUpdateHandlerRegistration.removeHandler();
@@ -164,7 +178,7 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
         final String oldContent = document.getContents();
         final TextPosition cursorPosition = document.getCursorPosition();
 
-        if (!(virtualFile instanceof File)){
+        if (!(virtualFile instanceof File)) {
             replaceContent(document, newContent, oldContent, cursorPosition);
             return;
         }
@@ -172,15 +186,15 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
         final File file = (File)virtualFile;
         final String newStamp = file.getModificationStamp();
 
-        if (oldStamp == null && !Objects.equals(newContent, oldContent)) {
-            replaceContent(document, newContent, oldContent, cursorPosition);
-            return;
-        }
-
         if (!Objects.equals(oldStamp, newStamp)) {
             replaceContent(document, newContent, oldContent, cursorPosition);
 
             notificationManager.notify("External operation", "File '" + file.getName() + "' is updated", SUCCESS, EMERGE_MODE);
+            return;
+        }
+
+        if (!Objects.equals(newContent, oldContent)) {
+            replaceContent(document, newContent, oldContent, cursorPosition);
         }
     }
 
@@ -198,9 +212,7 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
     }
 
     private void resolveAutoSave() {
-        for (EditorPartPresenter editor : synchronizedEditors.keySet()) {
-            resolveAutoSaveFor(editor);
-        }
+        synchronizedEditors.keySet().forEach(this::resolveAutoSaveFor);
     }
 
     private void resolveAutoSaveFor(EditorPartPresenter editor) {
@@ -214,8 +226,6 @@ public class EditorGroupSynchronizationImpl implements EditorGroupSynchronizatio
             return;
         }
 
-        if (editorWithAutoSave.isAutoSaveEnabled()) {
-            editorWithAutoSave.disableAutoSave();
-        }
+        editorWithAutoSave.disableAutoSave();
     }
 }
