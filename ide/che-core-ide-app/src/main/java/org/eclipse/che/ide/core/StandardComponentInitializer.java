@@ -163,6 +163,7 @@ public class StandardComponentInitializer {
     public static final String PREVIEW_IMAGE         = "previewImage";
     public static final String FIND_ACTION           = "findAction";
     public static final String FORMAT                = "format";
+    public static final String SAVE                  = "save";
     public static final String COPY                  = "copy";
     public static final String CUT                   = "cut";
     public static final String PASTE                 = "paste";
@@ -604,7 +605,7 @@ public class StandardComponentInitializer {
 
         DefaultActionGroup saveGroup = new DefaultActionGroup(actionManager);
         actionManager.registerAction("saveGroup", saveGroup);
-        actionManager.registerAction("save", saveAction);
+        actionManager.registerAction(SAVE, saveAction);
         saveGroup.addSeparator();
         saveGroup.add(saveAction);
 
@@ -839,6 +840,8 @@ public class StandardComponentInitializer {
         keyBinding.getGlobal().addKey(new KeyBuilder().alt().charCode('A').build(), IMPORT_PROJECT);
 
         keyBinding.getGlobal().addKey(new KeyBuilder().shift().charCode(KeyCodeMap.F10).build(), SHOW_COMMANDS_PALETTE);
+
+        keyBinding.getGlobal().addKey(new KeyBuilder().action().charCode('s').build(), SAVE);
 
         if (UserAgent.isMac()) {
             keyBinding.getGlobal().addKey(new KeyBuilder().control().charCode('w').build(), CLOSE_ACTIVE_EDITOR);
