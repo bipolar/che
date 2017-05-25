@@ -19,6 +19,7 @@ import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.core.jsonrpc.commons.RequestTransmitter;
 import org.eclipse.che.api.core.notification.EventService;
 import org.eclipse.che.api.core.notification.EventSubscriber;
+import org.eclipse.che.api.project.server.EditorWorkingCopy;
 import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.api.project.server.EditorWorkingCopyUpdatedEvent;
 import org.eclipse.che.api.project.server.ProjectManager;
@@ -119,7 +120,9 @@ public class PomReconciler {
         }
 
         String projectPath = entry.getPath().getParent().toString();
-        String pomContent = editorWorkingCopyManager.getContentFor(pomPath);
+        EditorWorkingCopy workingCopy = editorWorkingCopyManager.getWorkingCopy(pomPath);
+        String pomContent = workingCopy != null ? workingCopy.getContentAsString() : entry.getVirtualFile().getContentAsString();
+
         return reconcile(pomPath, projectPath, pomContent);
     }
 
@@ -180,7 +183,12 @@ public class PomReconciler {
         }
 
         try {
-            String newPomContent = editorWorkingCopyManager.getContentFor(fileLocation);
+            EditorWorkingCopy workingCopy = editorWorkingCopyManager.getWorkingCopy(fileLocation);
+            if (workingCopy == null) {
+                return;
+            }
+
+            String newPomContent = workingCopy.getContentAsString();
             if (isNullOrEmpty(newPomContent)) {
                 return;
             }

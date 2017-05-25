@@ -12,6 +12,8 @@ package org.eclipse.che.plugin.maven.server.projecttype;
 
 import org.eclipse.che.api.core.ForbiddenException;
 import org.eclipse.che.api.core.ServerException;
+import org.eclipse.che.api.project.server.EditorWorkingCopy;
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.api.project.server.FileEntry;
 import org.eclipse.che.api.project.server.FolderEntry;
 import org.eclipse.che.api.project.server.type.ReadonlyValueProvider;
@@ -24,6 +26,7 @@ import org.eclipse.che.plugin.maven.server.core.MavenProjectManager;
 import org.eclipse.che.plugin.maven.server.core.project.MavenProject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static org.eclipse.che.ide.ext.java.shared.Constants.OUTPUT_FOLDER;
 import static org.eclipse.che.ide.ext.java.shared.Constants.SOURCE_FOLDER;
+import static org.eclipse.che.maven.data.MavenConstants.POM_FILE_NAME;
 import static org.eclipse.che.plugin.maven.shared.MavenAttributes.ARTIFACT_ID;
 import static org.eclipse.che.plugin.maven.shared.MavenAttributes.DEFAULT_OUTPUT_FOLDER;
 import static org.eclipse.che.plugin.maven.shared.MavenAttributes.DEFAULT_PACKAGING;
@@ -53,12 +57,15 @@ import static org.eclipse.che.plugin.maven.shared.MavenAttributes.VERSION;
 public class MavenValueProvider extends ReadonlyValueProvider {
 
 
-    private MavenProjectManager mavenProjectManager;
-    private FolderEntry         projectFolder;
+    private MavenProjectManager      mavenProjectManager;
+    private FolderEntry              projectFolder;
+    private EditorWorkingCopyManager editorWorkingCopyManager;
 
-    protected MavenValueProvider(MavenProjectManager mavenProjectManager, FolderEntry projectFolder) {
+    protected MavenValueProvider(MavenProjectManager mavenProjectManager, FolderEntry projectFolder,
+                                 EditorWorkingCopyManager editorWorkingCopyManager) {
         this.mavenProjectManager = mavenProjectManager;
         this.projectFolder = projectFolder;
+        this.editorWorkingCopyManager = editorWorkingCopyManager;
     }
 
     @Override
@@ -74,7 +81,7 @@ public class MavenValueProvider extends ReadonlyValueProvider {
 //            if (mavenProject != null) {
 //                return getFromMavenProject(mavenProject, attributeName);
 //            } else {
-                return readFromPom(attributeName);
+            return readFromPom(attributeName);
 //            }
         } catch (ServerException | ForbiddenException | IOException e) {
             throwReadException(e);
@@ -174,15 +181,17 @@ public class MavenValueProvider extends ReadonlyValueProvider {
     }
 
     protected Model readModel(FolderEntry projectFolder) throws ValueStorageException, ServerException, ForbiddenException, IOException {
-        FileEntry pomFile = (FileEntry)projectFolder.getChild("pom.xml");
+        FileEntry pomFile = (FileEntry)projectFolder.getChild(POM_FILE_NAME);
         if (pomFile == null) {
             throw new ValueStorageException("pom.xml does not exist.");
         }
-        return Model.readFrom(pomFile.getInputStream());
+
+        EditorWorkingCopy editorWorkingCopy = editorWorkingCopyManager.getWorkingCopy(pomFile.getPath().toString());
+        InputStream pomContent = editorWorkingCopy != null ? editorWorkingCopy.getContent() : pomFile.getInputStream();
+        return Model.readFrom(pomContent);
     }
 
     protected void throwReadException(Exception e) throws ValueStorageException {
         throw new ValueStorageException("Can't read pom.xml : " + e.getMessage());
     }
-
 }

@@ -80,6 +80,18 @@ public class EditorWorkingCopyManager {
     }
 
     /**
+     * Gets in-memory working copy by path to the original file.
+     * Note: returns {@code null} when working copy is not found
+     *
+     * @param filePath
+     *         path to the original file
+     * @return in-memory working copy for the file which corresponds given {@code filePath} or {@code null} when working copy is not found
+     */
+    public EditorWorkingCopy getWorkingCopy(String filePath) {
+        return workingCopiesStorage.get(filePath);
+    }
+
+    /**
      * Gets persistent working copy by path to the original file.
      * Note: returns {@code null} when working copy is not found
      *
@@ -95,19 +107,19 @@ public class EditorWorkingCopyManager {
      */
     public File getPersistentWorkingCopy(String filePath) throws NotFoundException, ServerException, ForbiddenException {
         VirtualFileEntry persistentWorkingCopy = null;
-        if (workingCopiesStorage.containsKey(filePath)) {
-            EditorWorkingCopy workingCopy = workingCopiesStorage.get(filePath);
-            byte[] workingCopyContent = workingCopy.getContentAsBytes();
-
-            persistentWorkingCopy = getPersistentWorkingCopy(filePath, workingCopy.getProjectPath());
-            persistentWorkingCopy.getVirtualFile().updateContent(workingCopyContent);
-        } else {
+//        if (workingCopiesStorage.containsKey(filePath)) {
+//            EditorWorkingCopy workingCopy = workingCopiesStorage.get(filePath);
+//            byte[] workingCopyContent = workingCopy.getContentAsBytes();
+//
+//            persistentWorkingCopy = getPersistentWorkingCopy(filePath, workingCopy.getProjectPath());
+//            persistentWorkingCopy.getVirtualFile().updateContent(workingCopyContent);
+//        } else {
             FileEntry originalFile = projectManagerProvider.get().asFile(filePath);
             if (originalFile != null) {
                 persistentWorkingCopy = getPersistentWorkingCopy(filePath, originalFile.getProject());
-            }
+//            }
         }
-        return persistentWorkingCopy == null ? null : new File(persistentWorkingCopy.getVirtualFile().toIoFile().getAbsolutePath());
+        return persistentWorkingCopy == null ? null : new File(originalFile.getVirtualFile().toIoFile().getAbsolutePath());
     }
 
     /**

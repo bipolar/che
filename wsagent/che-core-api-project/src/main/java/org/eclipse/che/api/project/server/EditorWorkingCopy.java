@@ -10,13 +10,22 @@
  *******************************************************************************/
 package org.eclipse.che.api.project.server;
 
+import com.google.common.io.ByteStreams;
+
+import org.eclipse.che.api.core.ServerException;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static java.lang.String.format;
+
 /**
  * In-memory implementation of working copy for opened editor on client.
  *
  * @author Roman Nikitenko
  */
 public class EditorWorkingCopy {
-
     private String path;
     private String projectPath;
     private byte[]            content;
@@ -56,13 +65,22 @@ public class EditorWorkingCopy {
     }
 
     /**
+     * Gets content of the working copy.
+     *
+     * @return content ot the working copy
+     */
+    public InputStream getContent() {
+        return new ByteArrayInputStream(getContentAsBytes());
+    }
+
+    /**
      * Updates content of the working copy.
      *
      * @param content
      *         content
      * @return current working copy after updating content
      */
-    public EditorWorkingCopy updateContent(byte[] content) {
+    EditorWorkingCopy updateContent(byte[] content) {
         this.content = content;
         return this;
     }
@@ -74,9 +92,26 @@ public class EditorWorkingCopy {
      *         content
      * @return current working copy after updating content
      */
-    public EditorWorkingCopy updateContent(String content) {
+    EditorWorkingCopy updateContent(String content) {
         this.content = content.getBytes();
         return this;
+    }
+
+    /**
+     * Updates content of the working copy.
+     *
+     * @param content
+     *         content
+     * @return current working copy after updating content
+     */
+    EditorWorkingCopy updateContent(InputStream content) throws ServerException {
+        byte[] bytes;
+        try {
+            bytes = ByteStreams.toByteArray(content);
+        } catch (IOException e) {
+            throw new ServerException(format("Can not update the content of '%s'. The reason is: %s", getPath(), e.getMessage()));
+        }
+        return updateContent(bytes);
     }
 
     /** Returns the path to the persistent working copy */

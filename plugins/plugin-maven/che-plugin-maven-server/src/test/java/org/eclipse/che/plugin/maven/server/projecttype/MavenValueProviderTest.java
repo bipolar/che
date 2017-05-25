@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.che.plugin.maven.server.projecttype;
 
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.api.project.server.FileEntry;
 import org.eclipse.che.api.project.server.FolderEntry;
 import org.eclipse.che.api.vfs.Path;
@@ -62,15 +63,17 @@ public class MavenValueProviderTest {
                         "</project>";
 
     @Mock
-    private MavenProjectManager mavenProjectManager;
+    private MavenProjectManager      mavenProjectManager;
     @Mock
-    private FolderEntry folderEntry;
+    private EditorWorkingCopyManager editorWorkingCopyManager;
     @Mock
-    private MavenProject mavenProject;
+    private FolderEntry              folderEntry;
     @Mock
-    private MavenKey mavenKey;
+    private MavenProject             mavenProject;
     @Mock
-    private MavenKey parentKey;
+    private MavenKey                 mavenKey;
+    @Mock
+    private MavenKey                 parentKey;
 
     private MavenValueProvider mavenValueProvider;
 
@@ -80,11 +83,11 @@ public class MavenValueProviderTest {
         when(folderEntry.getPath()).thenReturn(Path.of(""));
         when(mavenProject.getMavenKey()).thenReturn(mavenKey);
         when(mavenProject.getParentKey()).thenReturn(parentKey);
-        mavenValueProvider = new MavenValueProvider(mavenProjectManager, folderEntry);
+        mavenValueProvider = new MavenValueProvider(mavenProjectManager, folderEntry, editorWorkingCopyManager);
     }
 
 
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void getArtifactIdFromMavenProject() throws Exception {
         String artifactId = NameGenerator.generate("artifactId-", 6);
         when(mavenKey.getArtifactId()).thenReturn(artifactId);
@@ -98,7 +101,7 @@ public class MavenValueProviderTest {
     }
 
 
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void getGroupIdFromMavenProject() throws Exception {
         String groupId = NameGenerator.generate("groupId-", 6);
         when(mavenKey.getGroupId()).thenReturn(groupId);
@@ -112,7 +115,7 @@ public class MavenValueProviderTest {
     }
 
 
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void getVersionFromMavenProject() throws Exception {
         String versionId = NameGenerator.generate("version-", 6);
         when(mavenKey.getVersion()).thenReturn(versionId);

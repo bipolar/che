@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.che.plugin.maven.server.projecttype;
 
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.api.project.server.FolderEntry;
 import org.eclipse.che.api.project.server.type.ValueProvider;
 import org.eclipse.che.api.project.server.type.ValueProviderFactory;
@@ -25,10 +26,13 @@ public class MavenValueProviderFactory implements ValueProviderFactory {
     @Inject
     MavenProjectManager mavenProjectManager;
 
+    @Inject
+    EditorWorkingCopyManager editorWorkingCopyManager;
+
 
     @Override
     public ValueProvider newInstance(FolderEntry projectFolder) {
-        return new MavenValueProvider(mavenProjectManager, projectFolder);
+        return new MavenValueProvider(mavenProjectManager, projectFolder, editorWorkingCopyManager);
     }
 
 }

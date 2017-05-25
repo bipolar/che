@@ -16,6 +16,7 @@ import com.google.inject.name.Named;
 
 import org.eclipse.che.api.core.notification.EventService;
 import org.eclipse.che.api.core.notification.EventSubscriber;
+import org.eclipse.che.api.project.server.EditorWorkingCopyManager;
 import org.eclipse.che.api.project.server.EditorWorkingCopyUpdatedEvent;
 import org.eclipse.che.api.project.server.notification.ProjectItemModifiedEvent;
 import org.eclipse.che.api.project.shared.dto.event.PomModifiedEventDto;
@@ -45,6 +46,7 @@ import static org.eclipse.che.maven.data.MavenConstants.POM_FILE_NAME;
 @Singleton
 public class PomChangeListener {
 
+    private final EditorWorkingCopyManager editorWorkingCopyManager;
     private final MavenWorkspace           mavenWorkspace;
     private final EclipseWorkspaceProvider eclipseWorkspaceProvider;
     private final String                   workspacePath;
@@ -53,10 +55,12 @@ public class PomChangeListener {
     @Inject
     public PomChangeListener(EventService eventService,
                              MavenWorkspace mavenWorkspace,
+                             EditorWorkingCopyManager editorWorkingCopyManager,
                              EclipseWorkspaceProvider eclipseWorkspaceProvider,
                              ThreadPullLauncher launcher,
                              @Named("che.user.workspaces.storage") String workspacePath) {
         this.mavenWorkspace = mavenWorkspace;
+        this.editorWorkingCopyManager = editorWorkingCopyManager;
         this.eclipseWorkspaceProvider = eclipseWorkspaceProvider;
         this.workspacePath = workspacePath;
 
@@ -66,10 +70,10 @@ public class PomChangeListener {
             @Override
             public void onEvent(ProjectItemModifiedEvent event) {
                 ProjectItemModifiedEvent.EventType eventType = event.getType();
-                if (eventType == UPDATED) {
-                    /** autosave of content can be disabled, so we use {@link EditorWorkingCopyUpdatedEvent} instead at 'update' case */
-                    return;
-                }
+//                if (eventType == UPDATED) {
+//                    /** autosave of content can be disabled, so we use {@link EditorWorkingCopyUpdatedEvent} instead at 'update' case */
+//                    return;
+//                }
 
                 String eventPath = event.getPath();
                 if (!event.isFolder() && eventPath.endsWith("pom.xml")) {
@@ -83,19 +87,19 @@ public class PomChangeListener {
             }
         });
 
-        eventService.subscribe(new EventSubscriber<EditorWorkingCopyUpdatedEvent>() {
-            @Override
-            public void onEvent(EditorWorkingCopyUpdatedEvent event) {
-                String eventPath = event.getChanges().getFileLocation();
-                if (!eventPath.endsWith(POM_FILE_NAME)) {
-                    return;
-                }
-
-                if (pomIsValid(eventPath)) {
-                    projectToUpdate.add(new Path(eventPath).removeLastSegments(1).toOSString());
-                }
-            }
-        });
+//        eventService.subscribe(new EventSubscriber<EditorWorkingCopyUpdatedEvent>() {
+//            @Override
+//            public void onEvent(EditorWorkingCopyUpdatedEvent event) {
+//                String eventPath = event.getChanges().getFileLocation();
+//                if (!eventPath.endsWith(POM_FILE_NAME)) {
+//                    return;
+//                }
+//
+//                if (pomIsValid(eventPath)) {
+//                    projectToUpdate.add(new Path(eventPath).removeLastSegments(1).toOSString());
+//                }
+//            }
+//        });
 
         eventService.subscribe(new EventSubscriber<PomModifiedEventDto>() {
             @Override
@@ -110,7 +114,10 @@ public class PomChangeListener {
 
     private boolean pomIsValid(String path) {
         try {
-            Model.readFrom(new File(workspacePath, path));
+            File workingCopy = editorWorkingCopyManager.getPersistentWorkingCopy(path);
+            File pomFile = workingCopy != null ? workingCopy : new File(workspacePath, path);
+
+            Model.readFrom(pomFile);
         } catch (Exception e) {
             JavaPlugin.log(e);
             return false;
